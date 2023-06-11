@@ -10,7 +10,7 @@ Po kolei przejdę po tabelach (tych ciekawszych):
 
 - wydarzenia – nic szczególnego się tu nie dzieje i nie ma co się psuć, postgres na poziomie struktury zapewnił nam sporą spójność. Od siebie dodałem funkcję użytkową, która usuwa przestarzałe wydarzenia.
 - oddziały – bardzo skomplikowane usuwanie przez gęstą sieć połączeń kluczami obcymi, potrzebny był wyzwalacz, która najpierw ”oderwie” oddział od reszty i dopiero usunie. Uznałem, że książki zostaną przeniesione do oddziału, gdzie jest ich najmniej. 
-- hasła – problematyczne usuwanie, nie mogłem go zabronić, ponieważ użytkownik mógłby chcieć usunąć konto, dlatego wymyśliłem, że jeśli chcemy usunąć hasło to za tym idzie usunięcie konta.
+- hasła – problematyczne usuwanie, nie mogłem go zabronić, ponieważ użytkownik mógłby chcieć usunąć konto.
 - pracownicy i studenci – tu konieczny był wyzwalacz, żeby sprawdzać unikalność nazw użytkowników w 2 rozłącznych tabelach. Usuwanie studenta jest opatrzone wyzwalaczem, który sprawdza, czy wszystkie książki są oddane. Usuwanie pracownika znowu jest problematyczne przez klucze obce, dlatego rozwiązałem to tworząc abstrakcyjnego pracownika ”postgres”, jeśli on znajdzie się, w którejś tabeli to znaczy, że wcześniejszy pracownik został zwolniony.  
 - wszystkie tabele związane z książkami – przez unikalny token, który dla postgresa nie jest unikalny, musiałem sam zadbać o poprawne referencjonowanie tokenami, stąd w tej kategorii jest tak dużo wyzwalaczy. Dodatkowo sprawdzam spójność między datą urodzenia autora 
   a wydaniem książki. Na diagramie baza jest niespójna, mam tego świadomość, ale wyzwalacze to naprawiają.
