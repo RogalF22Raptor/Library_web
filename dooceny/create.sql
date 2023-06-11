@@ -251,9 +251,7 @@ create trigger usun_kierunek before delete on kierunki
 
  -- kierunki_kategorie, studenci_kierunki, tu sie nic nie dzieje, wszytsko zalatwiaja klucze obce, nawet delete bez problemow
 
- -- usuwanie hasel, nie moge go zabronic, ale zeby zapewnic spojnosc, musze dodatkowo usunac pracownika,
- create rule usun_haslo_pracownika_r as on delete to hasla_pracownikow
-    do instead delete from pracownicy where old.id_pracownika = id_pracownika;
+ -- usuwanie hasel, nie moge go zabronic, ale tu powstaje blokada
 
  -- usuwanie pracownika, wymyslilem sobie, zeby zostawic cala historie wypozyczen i zwrotow, problem pojawia sie gdy 
  -- chce usunac oddzial - (rozwiazane), chece usunac pracownika - jedyny sensowny pomysl na jaki wpadlem to dodanie 
@@ -272,9 +270,6 @@ create trigger usun_pracownika_t before delete on pracownicy
     for each row execute procedure usun_pracownika_t();
 
 -- z usuwaniem studentow i ich hasel analogicznie
-create rule usun_haslo_studenta_r as on delete to hasla_studentow
-    do instead delete from studenci where old.id_studenta = id_studenta;
-
 create or replace function usun_studenta_t() returns trigger as
 $$
 declare
@@ -292,12 +287,10 @@ begin
         return null;
     end if;
     czymoznausun := true;
-    for i in (select id_zwrotu from wypozyczenia_zwroty where id_studenta = old.id_studenta) loop
-        if (select id_kary from kary_studenci where i = id_zwrotu) is not null then
-            czymoznausun := false;
-            exit;
-        end if;
-    end loop;
+    if (select id_kary from kary_studenci where id_studenta = old.id_studenta) is not null then
+        czymoznausun := false;
+    end if;
+    
     if czymoznausun = false then
         raise exception 'student ma kare';
         return null;
@@ -316,11 +309,11 @@ create trigger usun_studenta_t before delete on studenci
 create or replace function unikalna_nazwa_uzytkownika() returns trigger as
 $$
 begin
-    if new.nazwa_uzytkownika in (select nazwa_uzytkownika from studenci) 
-        or new.nazwa_uzytkownika in (select nazwa_uzytkownika from pracownicy) then
-            raise exception 'nazwa uzytkownika nie jest unikalna';
+    if not (new.nazwa_uzytkownika in (select nazwa_uzytkownika from studenci) 
+        or new.nazwa_uzytkownika in (select nazwa_uzytkownika from pracownicy)) then
+            return new;
     end if;
-    return new;
+    raise exception 'nazwa uzytkownika nie jest unikalna';
 end;
 $$
 language plpgsql;
@@ -463,7 +456,7 @@ create trigger wypozycz before insert on wypozyczenia
 create or replace function usunwypozyczenie() returns trigger as 
 $$
 begin
-    if (select wypozyczona from ksiazki where id_ksiazki = old.id_ksiazki) = true then
+    if (select id_zwrotu from zwroty where id_wydarzenia = old.id_wypozyczenia) is null then
         raise exception 'ta ksiazka jest wypozyczona';
         return null; 
     end if;
@@ -563,6 +556,45 @@ Ekonamia,\N
 Filozofia,4
 Komedia,4
 Oparte na faktach,4
+\.
+
+COPY kierunki_kategorie(id_kierunku, id_kategorii) FROM stdin (Delimiter',');
+1,1
+1,2
+1,3
+1,9
+2,1
+2,2
+3,1
+3,2
+3,3
+3,9
+4,1
+4,2
+5,1
+5,11
+6,1
+7,12
+8,11
+9,1
+9,2
+10,1
+10,3
+11,2
+12,2
+12,5
+13,2
+13,5
+14,5
+14,6
+14,7
+15,5
+15,6
+15,7
+16,10
+16,12
+17,10
+17,12
 \.
 
 COPY kary (nazwa_kary) FROM stdin (Delimiter',');
