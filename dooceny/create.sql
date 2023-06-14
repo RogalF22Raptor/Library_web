@@ -259,6 +259,9 @@ create trigger usun_kierunek before delete on kierunki
 create or replace function usun_pracownika_t() returns trigger as
 $$
 begin
+    if old.nazwa_uzytkownika = 'postgres' then
+        raise exception 'nie mozna usunac postgresa';
+    end if;
     update wypozyczenia set id_pracownika = null where id_pracownika = old.id_pracownika;
     update zwroty set id_pracownika = (select id_pracownika from pracownicy where nazwa_uzytkownika = 'postgres' limit 1) where id_pracownika = old.id_pracownika;
     delete from hasla_pracownikow where id_pracownika = old.id_pracownika;
@@ -268,6 +271,10 @@ $$
 language plpgsql;
 create trigger usun_pracownika_t before delete on pracownicy
     for each row execute procedure usun_pracownika_t();
+
+create rule niezmieniajpostgresa as on update to pracownicy
+    where old.nazwa_uzytkownika = 'postgres'
+    do instead nothing;
 
 -- z usuwaniem studentow i ich hasel analogicznie
 create or replace function usun_studenta_t() returns trigger as
