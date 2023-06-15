@@ -482,7 +482,10 @@ create rule niezmieniajwypozyczen as on update to wypozyczenia
 create or replace function dodajzwrot() returns trigger as 
 $$
 begin
-    if new.data_zwrotu < (select data_wypozyczenia from wypozyczenia where id_wypozyczenia = new.id_wypozyczenia) then
+    if new.data_zwrotu is null then
+        new.data_zwrotu := now();
+    end if;
+    if new.data_zwrotu <= (select data_wypozyczenia from wypozyczenia where id_wypozyczenia = new.id_wypozyczenia) then
         raise exception 'cos nie tak z data oddania';
     end if;
     update ksiazki set wypozyczona = false where id_ksiazki = (select id_ksiazki from wypozyczenia where id_wypozyczenia = new.id_wypozyczenia);
