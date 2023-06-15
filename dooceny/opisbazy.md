@@ -21,14 +21,14 @@ Zdecydowałem się utworzyć 5 indexów (wszędzie na unikalnych tokenach, w wyp
 Na potrzeby aplikacji dodałem 3 widoki, które pomagają w filtrowaniu książek (prosty join i grupowanie po unikalnym tokenie) i wyświetlaniu stanu konta użytkownika (wypożyczenia i zwroty).
 
 Żeby odpalić stronę należy pobrać skompresowaną stronę i odpalić u siebie serwer Postgres jak i server PHP, potem utworzyć w folderze includes plik con.inc.php i tam podać odpowiednie wartości zgodne z bazą na komputerze:
-<?php
+
 $dbHost = "";
 $dbPort = "";
 $dBName = "";
 $dBUsername = "";
 $dBPassword = "";
 
-
+oczywiście na początku rozpocznyajac plik php odpowiednim symbolem
 
 
 
